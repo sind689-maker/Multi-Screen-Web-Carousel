@@ -1,6 +1,6 @@
 import styles from './ScreenDetector.module.css'
 
-export default function ScreenDetector({ screens, loading, error, isSupported, permissionState, onDetect }) {
+export default function ScreenDetector({ screens, loading, error, isSupported, onDetect }) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>

@@ -26,7 +26,6 @@ export default function Dashboard() {
   const [mappings, setMappings] = useState({})
   const [launchErrors, setLaunchErrors] = useState([])
   const [previewScreen, setPreviewScreen] = useState(null)
-  const [launched, setLaunched] = useState(false)
 
   const handleMappingChange = useCallback((screenId, newMapping) => {
     setMappings(prev => ({ ...prev, [screenId]: newMapping }))
@@ -102,8 +101,6 @@ export default function Dashboard() {
 
     if (errors.length > 0) {
       setLaunchErrors(errors)
-    } else {
-      setLaunched(true)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screens, folders, mappings])
