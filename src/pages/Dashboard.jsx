@@ -62,6 +62,13 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Auto-detect screens on mount
+  useEffect(() => {
+    detectScreens()
+  // Only run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Auto-save whenever folders or mappings change (debounced 800 ms)
   useEffect(() => {
     if (!configLoaded) return

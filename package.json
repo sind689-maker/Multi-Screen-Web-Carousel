@@ -26,6 +26,8 @@
         "electron:build:mac": "npm run build && electron-builder --mac"
     },
     "devDependencies": {
+        "i18next": "^26.0.10",
+        "react-i18next": "^17.0.7",
         "@eslint/js": "^10.0.1",
         "react": "^19.2.5",
         "react-dom": "^19.2.5",

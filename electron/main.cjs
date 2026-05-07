@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain, dialog, protocol } = require('electron')
+const { app, BrowserWindow, Menu, session, ipcMain, dialog, protocol } = require('electron')
 const path = require('path')
 const fs = require('fs')
 
@@ -66,6 +66,8 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+    Menu.setApplicationMenu(null)
+
     // ── Custom protocol: serve local image files to the renderer ───────────
     // URL format: carousel-local://localhost/F:/path/to/file.jpg  (Windows)
     //             carousel-local://localhost/home/user/file.jpg   (Unix)
