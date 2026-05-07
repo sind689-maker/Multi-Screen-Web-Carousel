@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import Swiper from 'swiper'
 import {
   Navigation, Pagination, Autoplay,
@@ -23,6 +24,7 @@ const EFFECT_MAP = {
 }
 
 export default function SlideshowCarousel({ images, duration, transition, showControls = false }) {
+  const { t } = useTranslation()
   const swiperRef = useRef(null)
   const swiperInstanceRef = useRef(null)
 
@@ -77,7 +79,7 @@ export default function SlideshowCarousel({ images, duration, transition, showCo
   if (images.length === 0) {
     return (
       <div className={styles.empty}>
-        <p>No images to display.</p>
+        <p>{t('noImages')}</p>
       </div>
     )
   }

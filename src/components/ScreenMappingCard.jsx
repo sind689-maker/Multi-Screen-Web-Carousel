@@ -1,17 +1,19 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import styles from './ScreenMappingCard.module.css'
 
-const TRANSITIONS = [
-  { value: 'fade', label: 'Fade', icon: '🌅' },
-  { value: 'slide', label: 'Slide', icon: '➡' },
-  { value: 'cube', label: 'Cube', icon: '🎲' },
-  { value: 'flip', label: 'Flip', icon: '🔄' },
-  { value: 'coverflow', label: 'Coverflow', icon: '🗂' },
-]
-
 export default function ScreenMappingCard({ screen, folders, mapping, onMappingChange }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(true)
   const selectedFolder = folders.find(f => f.id === mapping.folderId)
+
+  const TRANSITIONS = [
+    { value: 'fade', label: t('transitionFade'), icon: '🌅' },
+    { value: 'slide', label: t('transitionSlide'), icon: '➡' },
+    { value: 'cube', label: t('transitionCube'), icon: '🎲' },
+    { value: 'flip', label: t('transitionFlip'), icon: '🔄' },
+    { value: 'coverflow', label: t('transitionCoverflow'), icon: '🗂' },
+  ]
 
   const update = (field, value) => {
     onMappingChange(screen.id, { ...mapping, [field]: value })
@@ -26,13 +28,13 @@ export default function ScreenMappingCard({ screen, folders, mapping, onMappingC
             <span className={styles.screenName}>{screen.label}</span>
             {screen.isPrimary && <span className={styles.badge}>Primary</span>}
           </div>
-          <span className={styles.resolution}>{screen.width}×{screen.height}</span>
+          <span className={styles.resolution}>{screen.physicalWidth ?? screen.width}×{screen.physicalHeight ?? screen.height}</span>
         </div>
         <div className={styles.headerRight}>
           {mapping.folderId ? (
-            <span className={styles.statusDot} title="Configured" />
+            <span className={styles.statusDot} title={t('configured')} />
           ) : (
-            <span className={styles.statusDotEmpty} title="Not configured" />
+            <span className={styles.statusDotEmpty} title={t('notConfigured')} />
           )}
           <span className={styles.chevron}>{expanded ? '▾' : '▸'}</span>
         </div>
@@ -42,21 +44,21 @@ export default function ScreenMappingCard({ screen, folders, mapping, onMappingC
         <div className={styles.body}>
           {/* Folder Select */}
           <div className={styles.field}>
-            <label className={styles.label}>Image Folder</label>
+            <label className={styles.label}>{t('imageFolder')}</label>
             <select
               className={styles.select}
               value={mapping.folderId || ''}
               onChange={e => update('folderId', e.target.value || null)}
             >
-              <option value="">— Select a folder —</option>
+              <option value="">{t('selectFolder')}</option>
               {folders.map(folder => (
                 <option key={folder.id} value={folder.id}>
-                  {folder.name} ({folder.imageCount} images)
+                  {folder.name} ({t('imagesInFolder', { count: folder.imageCount })})
                 </option>
               ))}
             </select>
             {folders.length === 0 && (
-              <span className={styles.hint}>Add folders in the panel above first.</span>
+              <span className={styles.hint}>{t('addFolderFirst')}</span>
             )}
           </div>
 
@@ -67,7 +69,7 @@ export default function ScreenMappingCard({ screen, folders, mapping, onMappingC
                 <img key={i} src={img.url} alt={img.name} className={styles.thumb} />
               ))}
               {selectedFolder.images.length > 5 && (
-                <span className={styles.moreImages}>+{selectedFolder.images.length - 5}</span>
+                <span className={styles.moreImages}>{t('moreImages', { count: selectedFolder.images.length - 5 })}</span>
               )}
             </div>
           )}
@@ -75,7 +77,7 @@ export default function ScreenMappingCard({ screen, folders, mapping, onMappingC
           {/* Duration */}
           <div className={styles.field}>
             <label className={styles.label}>
-              Slide Duration
+              {t('slideDuration')}
               <span className={styles.fieldValue}>{mapping.duration}s</span>
             </label>
             <input
@@ -95,16 +97,16 @@ export default function ScreenMappingCard({ screen, folders, mapping, onMappingC
 
           {/* Transition */}
           <div className={styles.field}>
-            <label className={styles.label}>Transition Effect</label>
+            <label className={styles.label}>{t('transitionEffect')}</label>
             <div className={styles.transitionGrid}>
-              {TRANSITIONS.map(t => (
+              {TRANSITIONS.map(tr => (
                 <button
-                  key={t.value}
-                  className={`${styles.transitionBtn} ${mapping.transition === t.value ? styles.active : ''}`}
-                  onClick={() => update('transition', t.value)}
+                  key={tr.value}
+                  className={`${styles.transitionBtn} ${mapping.transition === tr.value ? styles.active : ''}`}
+                  onClick={() => update('transition', tr.value)}
                 >
-                  <span className={styles.transitionIcon}>{t.icon}</span>
-                  <span className={styles.transitionLabel}>{t.label}</span>
+                  <span className={styles.transitionIcon}>{tr.icon}</span>
+                  <span className={styles.transitionLabel}>{tr.label}</span>
                 </button>
               ))}
             </div>

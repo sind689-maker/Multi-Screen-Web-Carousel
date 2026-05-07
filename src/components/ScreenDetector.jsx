@@ -1,12 +1,14 @@
+import { useTranslation } from 'react-i18next'
 import styles from './ScreenDetector.module.css'
 
 export default function ScreenDetector({ screens, loading, error, isSupported, onDetect }) {
+  const { t } = useTranslation()
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>
           <span className={styles.icon}>🖥</span>
-          Connected Displays
+          {t('connectedDisplays')}
         </h2>
         <button
           className={styles.detectBtn}
@@ -14,15 +16,14 @@ export default function ScreenDetector({ screens, loading, error, isSupported, o
           disabled={loading}
         >
           {loading ? <span className={styles.spinner} /> : (
-            screens.length > 0 ? '↺ Refresh' : 'Detect Screens'
+            screens.length > 0 ? t('refresh') : t('detectScreens')
           )}
         </button>
       </div>
 
       {!isSupported && (
         <div className={styles.warning}>
-          ⚠ Window Management API requires Chrome/Edge 100+ with HTTPS or localhost.
-          Falling back to single-screen mode.
+          {t('wmApiWarning')}
         </div>
       )}
 
@@ -33,8 +34,8 @@ export default function ScreenDetector({ screens, loading, error, isSupported, o
       {screens.length === 0 && !loading ? (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>🖥</div>
-          <p>No screens detected yet.</p>
-          <p className={styles.emptyHint}>Click <strong>Detect Screens</strong> to discover your monitors.</p>
+          <p>{t('noScreensYet')}</p>
+          <p className={styles.emptyHint} dangerouslySetInnerHTML={{ __html: t('noScreensHint') }} />
         </div>
       ) : (
         <div className={styles.grid}>
@@ -44,20 +45,20 @@ export default function ScreenDetector({ screens, loading, error, isSupported, o
                 <span className={styles.screenIcon}>🖥</span>
                 <div className={styles.screenLabel}>
                   {screen.label}
-                  {screen.isPrimary && <span className={styles.badge}>Primary</span>}
+                  {screen.isPrimary && <span className={styles.badge}>{t('primary')}</span>}
                 </div>
               </div>
               <div className={styles.specs}>
                 <div className={styles.spec}>
-                  <span className={styles.specLabel}>Resolution</span>
-                  <span className={styles.specValue}>{screen.width} × {screen.height}</span>
+                  <span className={styles.specLabel}>{t('resolution')}</span>
+                  <span className={styles.specValue}>{screen.physicalWidth ?? screen.width} × {screen.physicalHeight ?? screen.height}</span>
                 </div>
                 <div className={styles.spec}>
-                  <span className={styles.specLabel}>Position</span>
+                  <span className={styles.specLabel}>{t('position')}</span>
                   <span className={styles.specValue}>({screen.availLeft}, {screen.availTop})</span>
                 </div>
                 <div className={styles.spec}>
-                  <span className={styles.specLabel}>DPR</span>
+                  <span className={styles.specLabel}>{t('dpr')}</span>
                   <span className={styles.specValue}>{screen.devicePixelRatio}x</span>
                 </div>
               </div>
