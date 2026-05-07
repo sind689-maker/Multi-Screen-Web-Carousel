@@ -73,7 +73,10 @@ export default function Dashboard() {
     // Store data so child windows can access it via window.opener
     saveSlideshowData(toLaunch)
 
-    const baseUrl = `${window.location.origin}${window.location.pathname}`
+    // file:// origin is "null" as a string; use href instead for Electron compatibility
+    const baseUrl = window.location.origin && window.location.origin !== 'null'
+      ? `${window.location.origin}${window.location.pathname}`
+      : window.location.href.split('#')[0]
 
     for (const item of toLaunch) {
       const { screen, screenId } = item
