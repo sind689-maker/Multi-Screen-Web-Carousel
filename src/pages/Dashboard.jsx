@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useFolderPicker } from '../hooks/useFolderPicker'
 import { useScreenDetection } from '../hooks/useScreenDetection'
 import FolderSelector from '../components/FolderSelector'
@@ -7,16 +6,16 @@ import ScreenDetector from '../components/ScreenDetector'
 import ScreenMappingCard from '../components/ScreenMappingCard'
 import SlideshowCarousel from '../components/SlideshowCarousel'
 import { saveSlideshowData } from '../utils/storageUtils'
+import { loadConfig, saveConfig } from '../utils/configUtils'
 import styles from './Dashboard.module.css'
 
 const DEFAULT_DURATION = 5
 const DEFAULT_TRANSITION = 'fade'
 
 export default function Dashboard() {
-  const { t } = useTranslation()
   const {
     folders, loading: fLoading, error: fError, isSupported: fsSupported,
-    pickFolder, removeFolder,
+    pickFolder, removeFolder, restoreFolders,
   } = useFolderPicker()
 
   const {
@@ -28,6 +27,50 @@ export default function Dashboard() {
   const [mappings, setMappings] = useState({})
   const [launchErrors, setLaunchErrors] = useState([])
   const [previewScreen, setPreviewScreen] = useState(null)
+
+  // ── Config persistence ──────────────────────────────────────────────────
+  // configLoaded: false until the initial load from config.jsonc is done.
+  const [configLoaded, setConfigLoaded] = useState(false)
+  const saveTimerRef = useRef(null)
+
+  // Load config once on mount (Electron only)
+  useEffect(() => {
+    async function initConfig() {
+      if (!window.electronAPI) { setConfigLoaded(true); return }
+      const cfg = await loadConfig()
+      if (cfg) {
+        if (Array.isArray(cfg.folders) && cfg.folders.length > 0) {
+          const restored = await Promise.all(
+            cfg.folders.map(async (saved) => {
+              if (!saved.path) return null
+              const images = await window.electronAPI.folder.readImages(saved.path)
+              if (!images.length) return null
+              return { id: saved.id, name: saved.name, path: saved.path, images, imageCount: images.length }
+            })
+          )
+          const valid = restored.filter(Boolean)
+          if (valid.length) restoreFolders(valid)
+        }
+        if (cfg.mappings && typeof cfg.mappings === 'object') {
+          setMappings(cfg.mappings)
+        }
+      }
+      setConfigLoaded(true)
+    }
+    initConfig()
+  // restoreFolders is stable (useCallback with no deps)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Auto-save whenever folders or mappings change (debounced 800 ms)
+  useEffect(() => {
+    if (!configLoaded) return
+    clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      saveConfig(folders, mappings)
+    }, 800)
+    return () => clearTimeout(saveTimerRef.current)
+  }, [folders, mappings, configLoaded])
 
   const handleMappingChange = useCallback((screenId, newMapping) => {
     setMappings(prev => ({ ...prev, [screenId]: newMapping }))
@@ -68,14 +111,17 @@ export default function Dashboard() {
       .filter(Boolean)
 
     if (toLaunch.length === 0) {
-      setLaunchErrors([t('noMappingError')])
+      setLaunchErrors(['No screens are configured with a folder. Please map at least one folder to a screen.'])
       return
     }
 
     // Store data so child windows can access it via window.opener
     saveSlideshowData(toLaunch)
 
-    const baseUrl = `${window.location.origin}${window.location.pathname}`
+    // file:// origin is "null" as a string; use href instead for Electron compatibility
+    const baseUrl = window.location.origin && window.location.origin !== 'null'
+      ? `${window.location.origin}${window.location.pathname}`
+      : window.location.href.split('#')[0]
 
     for (const item of toLaunch) {
       const { screen, screenId } = item
@@ -97,7 +143,7 @@ export default function Dashboard() {
 
       const win = window.open(url, `slideshow-${screenId}`, features)
       if (!win) {
-        errors.push(t('popupBlockedError', { label: screen.label }))
+        errors.push(`Could not open window for "${screen.label}". Check popup blocker settings.`)
       }
     }
 
@@ -105,7 +151,7 @@ export default function Dashboard() {
       setLaunchErrors(errors)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screens, folders, mappings, t])
+  }, [screens, folders, mappings])
 
   const previewMapping = previewScreen ? getMappingForScreen(previewScreen) : null
   const previewFolder = previewMapping?.folderId
@@ -119,20 +165,19 @@ export default function Dashboard() {
         <div className={styles.logo}>
           <span className={styles.logoIcon}>🎠</span>
           <div>
-            <h1 className={styles.logoTitle}>{t('appTitle')}</h1>
-            <span className={styles.logoSub}>{t('appSubtitle')}</span>
+            <h1 className={styles.logoTitle}>Multi-Screen Web Carousel</h1>
+            <span className={styles.logoSub}>Synchronized slideshow across multiple displays</span>
           </div>
         </div>
         <div className={styles.headerRight}>
           <div className={styles.apiStatus}>
             <span className={`${styles.dot} ${fsSupported ? styles.dotGreen : styles.dotRed}`} />
-            <span>{t('fileSystemApi')}</span>
+            <span>File System API</span>
           </div>
           <div className={styles.apiStatus}>
             <span className={`${styles.dot} ${wmSupported ? styles.dotGreen : styles.dotRed}`} />
-            <span>{t('windowManagementApi')}</span>
+            <span>Window Management API</span>
           </div>
-          <LanguageSwitcher />
         </div>
       </header>
 
@@ -165,11 +210,11 @@ export default function Dashboard() {
         <main className={styles.main}>
           <div className={styles.mainHeader}>
             <h2 className={styles.mainTitle}>
-              <span>🗺</span> {t('screenMapping')}
+              <span>🗺</span> Screen Mapping
             </h2>
             {screens.length > 0 && (
               <span className={styles.mainSub}>
-                {t('screensConfigured', { configured: configuredMappings.length, total: screens.length, plural: screens.length !== 1 ? 's' : '' })}
+                {configuredMappings.length} of {screens.length} screen{screens.length !== 1 ? 's' : ''} configured
               </span>
             )}
           </div>
@@ -177,8 +222,8 @@ export default function Dashboard() {
           {screens.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyStateIcon}>🖥</div>
-              <h3>{t('noScreensDetected')}</h3>
-              <p dangerouslySetInnerHTML={{ __html: t('noScreensDetectedHint') }} />
+              <h3>No screens detected</h3>
+              <p>Click <strong>Detect Screens</strong> in the left panel to discover your connected monitors.</p>
             </div>
           ) : (
             <div className={styles.mappingGrid}>
@@ -199,7 +244,7 @@ export default function Dashboard() {
             <div className={styles.previewSection}>
               <div className={styles.previewHeader}>
                 <h3 className={styles.previewTitle}>
-                  <span>👁</span> {t('livePreview')}
+                  <span>👁</span> Live Preview
                 </h3>
                 {screens.length > 0 && (
                   <div className={styles.previewTabs}>
@@ -226,7 +271,7 @@ export default function Dashboard() {
                     />
                   ) : (
                     <div className={styles.previewEmpty}>
-                      <span>{t('noFolderAssigned')}</span>
+                      <span>No folder assigned to this screen</span>
                     </div>
                   )}
                 </div>
@@ -250,11 +295,11 @@ export default function Dashboard() {
         <div className={styles.footerInfo}>
           {configuredMappings.length > 0 ? (
             <span className={styles.readyText}>
-              {t('readyToLaunch', { count: configuredMappings.length, plural: configuredMappings.length !== 1 ? 's' : '' })}
+              ✓ Ready to launch {configuredMappings.length} slideshow{configuredMappings.length !== 1 ? 's' : ''}
             </span>
           ) : (
             <span className={styles.notReadyText}>
-              {t('configureFirst')}
+              Configure at least one screen mapping to launch
             </span>
           )}
         </div>
@@ -263,23 +308,10 @@ export default function Dashboard() {
           onClick={handleLaunch}
           disabled={configuredMappings.length === 0}
         >
-          {t('launchSlideshows')}
+          <span className={styles.launchIcon}>🚀</span>
+          Launch Slideshow{configuredMappings.length !== 1 ? 's' : ''}
         </button>
       </footer>
     </div>
-  )
-}
-
-function LanguageSwitcher() {
-  const { i18n, t } = useTranslation()
-  const toggle = () => {
-    const next = i18n.language === 'zh' ? 'en' : 'zh'
-    i18n.changeLanguage(next)
-    localStorage.setItem('lang', next)
-  }
-  return (
-    <button className={styles.langBtn} onClick={toggle} title="Switch language">
-      {i18n.language === 'zh' ? t('langEn') : t('langZh')}
-    </button>
   )
 }
