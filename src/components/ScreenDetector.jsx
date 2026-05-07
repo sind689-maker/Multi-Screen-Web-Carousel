@@ -51,7 +51,7 @@ export default function ScreenDetector({ screens, loading, error, isSupported, o
               <div className={styles.specs}>
                 <div className={styles.spec}>
                   <span className={styles.specLabel}>{t('resolution')}</span>
-                  <span className={styles.specValue}>{screen.width} × {screen.height}</span>
+                  <span className={styles.specValue}>{screen.physicalWidth ?? screen.width} × {screen.physicalHeight ?? screen.height}</span>
                 </div>
                 <div className={styles.spec}>
                   <span className={styles.specLabel}>{t('position')}</span>

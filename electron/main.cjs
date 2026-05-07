@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, session, ipcMain, dialog, protocol } = require('electron')
+const { app, BrowserWindow, Menu, session, ipcMain, dialog, protocol, screen: electronScreen } = require('electron')
 const path = require('path')
 const fs = require('fs')
 
@@ -157,6 +157,16 @@ app.whenReady().then(() => {
             console.error('folder:read-images error:', err)
             return []
         }
+    })
+
+    // ── Screen IPC ─────────────────────────────────────────────────────────
+    ipcMain.handle('screen:get-displays', () => {
+        return electronScreen.getAllDisplays().map((d) => ({
+            x: d.bounds.x,
+            y: d.bounds.y,
+            physicalWidth: Math.round(d.bounds.width * d.scaleFactor),
+            physicalHeight: Math.round(d.bounds.height * d.scaleFactor),
+        }))
     })
 
     createWindow()

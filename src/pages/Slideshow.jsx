@@ -130,7 +130,7 @@ export default function Slideshow() {
       <div className={styles.controlBar}>
         {!isFullscreen && (
           <button className={styles.controlBtn} onClick={requestFullscreen} title={t('enterFullscreen')}>
-            ⛶ {t('enterFullscreen')}
+            {t('enterFullscreen')}
           </button>
         )}
         <button className={styles.controlBtn} onClick={() => window.close()} title="Close window">

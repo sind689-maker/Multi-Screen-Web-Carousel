@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useFolderPicker } from '../hooks/useFolderPicker'
 import { useScreenDetection } from '../hooks/useScreenDetection'
 import FolderSelector from '../components/FolderSelector'
@@ -13,6 +14,7 @@ const DEFAULT_DURATION = 5
 const DEFAULT_TRANSITION = 'fade'
 
 export default function Dashboard() {
+  const { t } = useTranslation()
   const {
     folders, loading: fLoading, error: fError, isSupported: fsSupported,
     pickFolder, removeFolder, restoreFolders,
@@ -118,7 +120,7 @@ export default function Dashboard() {
       .filter(Boolean)
 
     if (toLaunch.length === 0) {
-      setLaunchErrors(['No screens are configured with a folder. Please map at least one folder to a screen.'])
+      setLaunchErrors([t('noMappingError')])
       return
     }
 
@@ -150,7 +152,7 @@ export default function Dashboard() {
 
       const win = window.open(url, `slideshow-${screenId}`, features)
       if (!win) {
-        errors.push(`Could not open window for "${screen.label}". Check popup blocker settings.`)
+        errors.push(t('popupBlockedError', { label: screen.label }))
       }
     }
 
@@ -158,7 +160,7 @@ export default function Dashboard() {
       setLaunchErrors(errors)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screens, folders, mappings])
+  }, [screens, folders, mappings, t])
 
   const previewMapping = previewScreen ? getMappingForScreen(previewScreen) : null
   const previewFolder = previewMapping?.folderId
@@ -172,19 +174,20 @@ export default function Dashboard() {
         <div className={styles.logo}>
           <span className={styles.logoIcon}>🎠</span>
           <div>
-            <h1 className={styles.logoTitle}>Multi-Screen Web Carousel</h1>
-            <span className={styles.logoSub}>Synchronized slideshow across multiple displays</span>
+            <h1 className={styles.logoTitle}>{t('appTitle')}</h1>
+            <span className={styles.logoSub}>{t('appSubtitle')}</span>
           </div>
         </div>
         <div className={styles.headerRight}>
           <div className={styles.apiStatus}>
             <span className={`${styles.dot} ${fsSupported ? styles.dotGreen : styles.dotRed}`} />
-            <span>File System API</span>
+            <span>{t('fileSystemApi')}</span>
           </div>
           <div className={styles.apiStatus}>
             <span className={`${styles.dot} ${wmSupported ? styles.dotGreen : styles.dotRed}`} />
-            <span>Window Management API</span>
+            <span>{t('windowManagementApi')}</span>
           </div>
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -217,11 +220,11 @@ export default function Dashboard() {
         <main className={styles.main}>
           <div className={styles.mainHeader}>
             <h2 className={styles.mainTitle}>
-              <span>🗺</span> Screen Mapping
+              <span>🗺</span> {t('screenMapping')}
             </h2>
             {screens.length > 0 && (
               <span className={styles.mainSub}>
-                {configuredMappings.length} of {screens.length} screen{screens.length !== 1 ? 's' : ''} configured
+                {t('screensConfigured', { configured: configuredMappings.length, total: screens.length, plural: screens.length !== 1 ? 's' : '' })}
               </span>
             )}
           </div>
@@ -229,8 +232,8 @@ export default function Dashboard() {
           {screens.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyStateIcon}>🖥</div>
-              <h3>No screens detected</h3>
-              <p>Click <strong>Detect Screens</strong> in the left panel to discover your connected monitors.</p>
+              <h3>{t('noScreensDetected')}</h3>
+              <p dangerouslySetInnerHTML={{ __html: t('noScreensDetectedHint') }} />
             </div>
           ) : (
             <div className={styles.mappingGrid}>
@@ -251,7 +254,7 @@ export default function Dashboard() {
             <div className={styles.previewSection}>
               <div className={styles.previewHeader}>
                 <h3 className={styles.previewTitle}>
-                  <span>👁</span> Live Preview
+                  <span>👁</span> {t('livePreview')}
                 </h3>
                 {screens.length > 0 && (
                   <div className={styles.previewTabs}>
@@ -278,7 +281,7 @@ export default function Dashboard() {
                     />
                   ) : (
                     <div className={styles.previewEmpty}>
-                      <span>No folder assigned to this screen</span>
+                      <span>{t('noFolderAssigned')}</span>
                     </div>
                   )}
                 </div>
@@ -302,11 +305,11 @@ export default function Dashboard() {
         <div className={styles.footerInfo}>
           {configuredMappings.length > 0 ? (
             <span className={styles.readyText}>
-              ✓ Ready to launch {configuredMappings.length} slideshow{configuredMappings.length !== 1 ? 's' : ''}
+              {t('readyToLaunch', { count: configuredMappings.length, plural: configuredMappings.length !== 1 ? 's' : '' })}
             </span>
           ) : (
             <span className={styles.notReadyText}>
-              Configure at least one screen mapping to launch
+              {t('configureFirst')}
             </span>
           )}
         </div>
@@ -315,10 +318,23 @@ export default function Dashboard() {
           onClick={handleLaunch}
           disabled={configuredMappings.length === 0}
         >
-          <span className={styles.launchIcon}>🚀</span>
-          Launch Slideshow{configuredMappings.length !== 1 ? 's' : ''}
+          {t('launchSlideshows')}
         </button>
       </footer>
     </div>
+  )
+}
+
+function LanguageSwitcher() {
+  const { i18n, t } = useTranslation()
+  const toggle = () => {
+    const next = i18n.language === 'zh' ? 'en' : 'zh'
+    i18n.changeLanguage(next)
+    localStorage.setItem('lang', next)
+  }
+  return (
+    <button className={styles.langBtn} onClick={toggle} title="Switch language">
+      {i18n.language === 'zh' ? t('langEn') : t('langZh')}
+    </button>
   )
 }

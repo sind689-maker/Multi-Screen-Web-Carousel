@@ -22,4 +22,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
          */
         readImages: (folderPath) => ipcRenderer.invoke('folder:read-images', folderPath),
     },
+    screen: {
+        /** Get physical display dimensions from Electron's screen module.
+         *  Resolves to [{ x, y, physicalWidth, physicalHeight }] */
+        getDisplays: () => ipcRenderer.invoke('screen:get-displays'),
+    },
 })

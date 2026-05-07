@@ -28,7 +28,7 @@ export default function ScreenMappingCard({ screen, folders, mapping, onMappingC
             <span className={styles.screenName}>{screen.label}</span>
             {screen.isPrimary && <span className={styles.badge}>Primary</span>}
           </div>
-          <span className={styles.resolution}>{screen.width}×{screen.height}</span>
+          <span className={styles.resolution}>{screen.physicalWidth ?? screen.width}×{screen.physicalHeight ?? screen.height}</span>
         </div>
         <div className={styles.headerRight}>
           {mapping.folderId ? (
