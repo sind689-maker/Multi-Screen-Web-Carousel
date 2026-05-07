@@ -256,8 +256,7 @@ export default function Dashboard() {
                 <h3 className={styles.previewTitle}>
                   <span>👁</span> {t('livePreview')}
                 </h3>
-                {screens.length > 0 && (
-                  <div className={styles.previewTabs}>
+                <div className={styles.previewTabs}>
                     {screens.map(s => (
                       <button
                         key={s.id}
@@ -268,7 +267,6 @@ export default function Dashboard() {
                       </button>
                     ))}
                   </div>
-                )}
               </div>
               {previewScreen && (
                 <div className={styles.previewWindow}>

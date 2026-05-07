@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { readImagesFromDirectory, revokeImageUrls } from '../utils/imageUtils'
 
 const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI)
@@ -9,6 +10,7 @@ const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI)
  * In a plain browser, falls back to the File System Access API.
  */
 export function useFolderPicker() {
+    const { t } = useTranslation()
     const [folders, setFolders] = useState([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
@@ -33,7 +35,7 @@ export function useFolderPicker() {
 
                 const images = await window.electronAPI.folder.readImages(picked.path)
                 if (images.length === 0) {
-                    setError(`No image files found in "${picked.name}".`)
+                    setError(t('noImagesInFolder', { name: picked.name }))
                     setLoading(false)
                     return
                 }
@@ -50,7 +52,7 @@ export function useFolderPicker() {
                 const dirHandle = await window.showDirectoryPicker({ mode: 'read' })
                 const images = await readImagesFromDirectory(dirHandle)
                 if (images.length === 0) {
-                    setError(`No image files found in "${dirHandle.name}".`)
+                    setError(t('noImagesInFolder', { name: dirHandle.name }))
                     setLoading(false)
                     return
                 }
@@ -65,12 +67,12 @@ export function useFolderPicker() {
             }
         } catch (err) {
             if (err.name !== 'AbortError') {
-                setError(`Failed to read folder: ${err.message}`)
+                setError(t('folderReadError', { message: err.message }))
             }
         } finally {
             setLoading(false)
         }
-    }, [isSupported])
+    }, [isSupported, t])
 
     const removeFolder = useCallback((folderId) => {
         setFolders((prev) => {

@@ -24,6 +24,10 @@ export default {
         imageCount_other: '{{count}} 张图片',
         removeFolder: '移除文件夹',
 
+        // useFolderPicker errors
+        noImagesInFolder: '在文件夹"{{name}}"中未找到图片文件。',
+        folderReadError: '读取文件夹失败：{{message}}',
+
         // ScreenDetector
         connectedDisplays: '已连接显示器',
         refresh: '↺ 刷新',
@@ -35,6 +39,13 @@ export default {
         resolution: '分辨率',
         position: '位置',
         dpr: 'DPR',
+
+        // useScreenDetection errors/labels
+        wmPermissionDenied: '窗口管理权限被拒绝，将使用当前屏幕。',
+        screenDetectionFailed: '屏幕检测失败：{{message}}',
+        primaryDisplayFallback: '主显示器（回退模式）',
+        primaryDisplay: '主显示器',
+        displayLabel: '显示器 {{number}}',
 
         // ScreenMappingCard
         imageFolder: '图片文件夹',

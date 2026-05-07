@@ -20,6 +20,7 @@ export default function Slideshow() {
     // Retry a few times since the parent may take a moment to set data
     let attempts = 0
     const maxAttempts = 20
+    let timerId = null
 
     const tryLoad = () => {
       const slideshowData = getSlideshowData(screenId)
@@ -29,11 +30,12 @@ export default function Slideshow() {
       }
       attempts++
       if (attempts < maxAttempts) {
-        setTimeout(tryLoad, 200)
+        timerId = setTimeout(tryLoad, 200)
       }
     }
 
     tryLoad()
+    return () => clearTimeout(timerId)
   }, [screenId])
 
   // Auto-hide overlay after 3s
@@ -111,7 +113,7 @@ export default function Slideshow() {
 
       {/* HUD overlay */}
       {showOverlay && (
-        <div className={`${styles.overlay} ${!showOverlay ? styles.overlayHidden : ''}`}>
+        <div className={styles.overlay}>
           <div className={styles.overlayContent}>
             <div className={styles.overlayTitle}>🎠 {data.folderName}</div>
             <div className={styles.overlayMeta}>

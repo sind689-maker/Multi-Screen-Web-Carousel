@@ -24,6 +24,10 @@ export default {
         imageCount_other: '{{count}} images',
         removeFolder: 'Remove folder',
 
+        // useFolderPicker errors
+        noImagesInFolder: 'No image files found in "{{name}}".',
+        folderReadError: 'Failed to read folder: {{message}}',
+
         // ScreenDetector
         connectedDisplays: 'Connected Displays',
         refresh: '↺ Refresh',
@@ -35,6 +39,13 @@ export default {
         resolution: 'Resolution',
         position: 'Position',
         dpr: 'DPR',
+
+        // useScreenDetection errors/labels
+        wmPermissionDenied: 'Window Management permission denied. Using current screen only.',
+        screenDetectionFailed: 'Screen detection failed: {{message}}',
+        primaryDisplayFallback: 'Primary Display (fallback)',
+        primaryDisplay: 'Primary Display',
+        displayLabel: 'Display {{number}}',
 
         // ScreenMappingCard
         imageFolder: 'Image Folder',

@@ -1,25 +1,38 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Hook for detecting connected monitors via the Window Management API.
  */
 export function useScreenDetection() {
+    const { t } = useTranslation()
     const [screens, setScreens] = useState([])
     const [permissionState, setPermissionState] = useState('prompt') // 'prompt' | 'granted' | 'denied'
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    const screenDetailsRef = useRef(null)
+    const screensHandlerRef = useRef(null)
 
     const isSupported = typeof window !== 'undefined' && 'getScreenDetails' in window
 
+    // Clean up screenschange listener when component unmounts
+    useEffect(() => {
+        return () => {
+            if (screenDetailsRef.current && screensHandlerRef.current) {
+                screenDetailsRef.current.removeEventListener('screenschange', screensHandlerRef.current)
+            }
+        }
+    }, [])
+
     const detectScreens = useCallback(async () => {
         if (!isSupported) {
-            setError('Window Management API is not supported in this browser. Using current screen only.')
+            // Warning is already shown via the isSupported prop in ScreenDetector
             const dpr = window.devicePixelRatio ?? 1
             // Fallback: use window.screen
             setScreens([
                 {
                     id: 'screen-0',
-                    label: 'Primary Display (fallback)',
+                    label: t('primaryDisplayFallback'),
                     width: window.screen.width,
                     height: window.screen.height,
                     physicalWidth: Math.round(window.screen.width * dpr),
@@ -56,7 +69,7 @@ export function useScreenDetection() {
                     const elec = electronDisplays[idx]
                     return {
                         id: `screen-${idx}`,
-                        label: s.label || (s.isPrimary ? 'Primary Display' : `Display ${idx + 1}`),
+                        label: s.label || (s.isPrimary ? t('primaryDisplay') : t('displayLabel', { number: idx + 1 })),
                         width: s.width,
                         height: s.height,
                         physicalWidth: elec?.physicalWidth ?? Math.round(s.width * (s.devicePixelRatio ?? 1)),
@@ -72,23 +85,29 @@ export function useScreenDetection() {
 
             setScreens(buildScreenList(screenDetails))
 
-            // Listen for screen change events
-            screenDetails.addEventListener('screenschange', () => {
+            // Replace old screenschange listener before adding a new one
+            if (screenDetailsRef.current && screensHandlerRef.current) {
+                screenDetailsRef.current.removeEventListener('screenschange', screensHandlerRef.current)
+            }
+            const handler = () => {
                 setScreens(buildScreenList(screenDetails))
-            })
+            }
+            screenDetails.addEventListener('screenschange', handler)
+            screenDetailsRef.current = screenDetails
+            screensHandlerRef.current = handler
         } catch (err) {
             if (err.name === 'NotAllowedError') {
                 setPermissionState('denied')
-                setError('Window Management permission denied. Using current screen only.')
+                setError(t('wmPermissionDenied'))
             } else {
-                setError(`Screen detection failed: ${err.message}`)
+                setError(t('screenDetectionFailed', { message: err.message }))
             }
             // Fallback
             const dpr = window.devicePixelRatio ?? 1
             setScreens([
                 {
                     id: 'screen-0',
-                    label: 'Primary Display',
+                    label: t('primaryDisplay'),
                     width: window.screen.width,
                     height: window.screen.height,
                     physicalWidth: Math.round(window.screen.width * dpr),
@@ -104,7 +123,7 @@ export function useScreenDetection() {
         } finally {
             setLoading(false)
         }
-    }, [isSupported])
+    }, [isSupported, t])
 
     return { screens, permissionState, loading, error, isSupported, detectScreens }
 }
