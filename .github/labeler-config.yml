@@ -1,0 +1,15 @@
+# .github/labeler.yml
+
+# 1. 匹配 Bug 相关的正则
+bug:
+  - title: ['(?i)bug', '(?i)error', '(?i)报错', '(?i)失败']
+  - body: ['(?i)reproduce', '(?i)崩溃']
+
+# 2. 匹配提问相关的正则
+question:
+  - title: ['(?i)how to', '(?i)怎么', '.*\?$', '(?i)help']
+  - body: ['(?i)咨询', '(?i)请教']
+
+# 3. 匹配需求/建议
+enhancement:
+  - title: ['(?i)feature', '(?i)建议', '(?i)希望']

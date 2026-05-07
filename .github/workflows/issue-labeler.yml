@@ -1,0 +1,19 @@
+name: Issue Labeler (Regex)
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write # 建议加上，以防万一
+    steps:
+      - name: Labeler
+        uses: dessant/labeler@v3
+        with:
+          # 指向你的规则文件，建议保持这个文件名
+          configuration-path: .github/labeler.yml
+          # 这样即使机器人出错了，也不会导致整个任务变红，方便排查
+          continue-on-error: true
