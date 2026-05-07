@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import SlideshowCarousel from '../components/SlideshowCarousel'
 import { getSlideshowData } from '../utils/storageUtils'
 import styles from './Slideshow.module.css'
 
 export default function Slideshow() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const screenId = searchParams.get('screen')
   const [data, setData] = useState(null)
@@ -55,8 +57,8 @@ export default function Slideshow() {
   useEffect(() => {
     if (data) {
       // Small delay to let the page render first
-      const t = setTimeout(requestFullscreen, 300)
-      return () => clearTimeout(t)
+      const timer = setTimeout(requestFullscreen, 300)
+      return () => clearTimeout(timer)
     }
   }, [data, requestFullscreen])
 
@@ -82,8 +84,8 @@ export default function Slideshow() {
   if (!screenId) {
     return (
       <div className={styles.error}>
-        <h2>Invalid Slideshow URL</h2>
-        <p>No screen ID provided. Open this slideshow from the dashboard.</p>
+        <h2>{t('invalidUrl')}</h2>
+        <p>{t('invalidUrlHint')}</p>
       </div>
     )
   }
@@ -92,8 +94,8 @@ export default function Slideshow() {
     return (
       <div className={styles.loading}>
         <div className={styles.spinner} />
-        <p>Loading slideshow…</p>
-        <p className={styles.loadingHint}>Waiting for image data from dashboard</p>
+        <p>{t('loadingSlideshow')}</p>
+        <p className={styles.loadingHint}>{t('waitingData')}</p>
       </div>
     )
   }
@@ -113,11 +115,11 @@ export default function Slideshow() {
           <div className={styles.overlayContent}>
             <div className={styles.overlayTitle}>🎠 {data.folderName}</div>
             <div className={styles.overlayMeta}>
-              {data.images.length} images · {data.duration}s · {data.transition}
+              {t('imagesCount', { count: data.images.length })} · {data.duration}s · {data.transition}
             </div>
             {!isFullscreen && (
               <button className={styles.fsBtn} onClick={requestFullscreen}>
-                ⛶ Enter Fullscreen
+                {t('enterFullscreen')}
               </button>
             )}
           </div>
@@ -127,12 +129,12 @@ export default function Slideshow() {
       {/* Subtle controls bar on hover */}
       <div className={styles.controlBar}>
         {!isFullscreen && (
-          <button className={styles.controlBtn} onClick={requestFullscreen} title="Enter fullscreen">
-            ⛶ Fullscreen
+          <button className={styles.controlBtn} onClick={requestFullscreen} title={t('enterFullscreen')}>
+            ⛶ {t('enterFullscreen')}
           </button>
         )}
         <button className={styles.controlBtn} onClick={() => window.close()} title="Close window">
-          ✕ Close
+          ✕
         </button>
       </div>
     </div>

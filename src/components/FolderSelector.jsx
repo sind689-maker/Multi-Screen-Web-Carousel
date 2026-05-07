@@ -1,30 +1,32 @@
+import { useTranslation } from 'react-i18next'
 import styles from './FolderSelector.module.css'
 
 export default function FolderSelector({ folders, loading, error, isSupported, onPickFolder, onRemoveFolder }) {
+  const { t } = useTranslation()
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>
           <span className={styles.icon}>📁</span>
-          Image Folders
+          {t('imageFolders')}
         </h2>
         <button
           className={styles.addBtn}
           onClick={onPickFolder}
           disabled={loading || !isSupported}
-          title={!isSupported ? 'File System Access API not supported' : 'Select a folder'}
+          title={!isSupported ? t('folderNotSupported') : t('selectFolderTitle')}
         >
           {loading ? (
             <span className={styles.spinner} />
           ) : (
-            <span>+ Add Folder</span>
+            <span>{t('addFolder')}</span>
           )}
         </button>
       </div>
 
       {!isSupported && (
         <div className={styles.warning}>
-          ⚠ File System Access API requires Chrome/Edge 86+ with HTTPS or localhost.
+          {t('fsApiWarning')}
         </div>
       )}
 
@@ -35,8 +37,8 @@ export default function FolderSelector({ folders, loading, error, isSupported, o
       {folders.length === 0 ? (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>🖼</div>
-          <p>No folders added yet.</p>
-          <p className={styles.emptyHint}>Click <strong>+ Add Folder</strong> to select a local image folder.</p>
+          <p>{t('noFoldersYet')}</p>
+          <p className={styles.emptyHint} dangerouslySetInnerHTML={{ __html: t('noFoldersHint') }} />
         </div>
       ) : (
         <ul className={styles.list}>
@@ -45,7 +47,7 @@ export default function FolderSelector({ folders, loading, error, isSupported, o
               <div className={styles.folderIcon}>📂</div>
               <div className={styles.folderInfo}>
                 <span className={styles.folderName}>{folder.name}</span>
-                <span className={styles.folderCount}>{folder.imageCount} image{folder.imageCount !== 1 ? 's' : ''}</span>
+                <span className={styles.folderCount}>{t('imagesInFolder', { count: folder.imageCount })}</span>
               </div>
               {folder.images.length > 0 && (
                 <div className={styles.preview}>
@@ -62,7 +64,7 @@ export default function FolderSelector({ folders, loading, error, isSupported, o
               <button
                 className={styles.removeBtn}
                 onClick={() => onRemoveFolder(folder.id)}
-                title="Remove folder"
+                title={t('removeFolder')}
               >
                 ✕
               </button>
