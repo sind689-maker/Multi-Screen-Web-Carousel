@@ -1,25 +1,52 @@
-# React + Vite
+# Multi-Screen Web Carousel
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A cross-platform desktop application for multi-screen photo carousels, featuring highly customizable, fullscreen slideshows. Built with Electron, React, and Vite.
 
-Currently, two official plugins are available:
+## Overview
+![alt text](image.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Multi-Screen Support**: Automatically detect multiple connected displays.
+- **Folder Mapping**: Map specific local image folders to individual screens.
+- **Customizable Slideshows**: Smooth image carousels powered by Swiper.
+- **i18n Support**: Multilingual support built with i18next (English, Chinese).
+- **Cross-Platform**: Packaged with Electron Builder for Windows (NSIS/Portable) and macOS.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- [React](https://react.dev/)
+- [Vite](https://vitejs.dev/)
+- [Electron](https://www.electronjs.org/)
+- [Swiper](https://swiperjs.com/)
+- [React Router](https://reactrouter.com/)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
 
-## Todo List
-- [ ] 图片热更刷新（当前改了的图会破）
-- [ ] UI细节优化
-- [ ] 优化全屏手点交互
-- [ ] 优化launch按钮只能逐一投屏
-- [ ] 支持配置持久化、文件夹拖动。
-- [ ] launch按钮支持自动检测被关闭的屏幕，再次点击launch仅打开这些屏幕。
-- [ ] yuanyq-Cloud提交pr
+### Prerequisites
+
+- Node.js
+- npm
+
+### Installation & Run
+
+1. **Install dependencies**:
+   ``bash
+   npm install
+   ``
+
+2. **Start Dev Mode**:
+   ``bash
+   npm run electron:dev
+   ``
+
+3. **Build Application**:
+   ``bash
+   npm run electron:build
+   ``
+   *(Check package.json for specific macOS/Windows scripts. Output goes to the
+elease/ directory)*
+
+## License
+
+MIT License
