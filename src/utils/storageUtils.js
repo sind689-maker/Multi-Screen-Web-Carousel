@@ -1,25 +1,36 @@
 /**
  * Store slideshow configurations for cross-window access.
- * Child windows opened via window.open() can access the parent's
- * __slideshowData via window.opener.__slideshowData.
+ *
+ * Browser: child windows share window.opener with the parent.
+ * Electron: each BrowserWindow is a separate renderer process so
+ *   window.opener is null — localStorage (shared across all windows
+ *   of the same origin) is used as the fallback channel instead.
  */
 
 const STORAGE_KEY = '__slideshowData'
+const LS_KEY = 'mswc_slideshowData'
 
 /**
- * Save all screen configurations to window global for child window access.
+ * Save all screen configurations for child window access.
  * @param {Array} mappings - Array of {screenId, images, duration, transition}
  */
 export function saveSlideshowData(mappings) {
-  window[STORAGE_KEY] = {}
-  mappings.forEach(m => {
-    window[STORAGE_KEY][m.screenId] = {
-      images: m.images,
-      duration: m.duration,
-      transition: m.transition,
-      folderName: m.folderName,
+    window[STORAGE_KEY] = {}
+    mappings.forEach((m) => {
+        window[STORAGE_KEY][m.screenId] = {
+            images: m.images,
+            duration: m.duration,
+            transition: m.transition,
+            folderName: m.folderName,
+        }
+    })
+    // Persist to localStorage so Electron child windows (separate renderer
+    // processes where window.opener === null) can still read the data.
+    try {
+        localStorage.setItem(LS_KEY, JSON.stringify(window[STORAGE_KEY]))
+    } catch {
+        /* storage unavailable – fall back to window.opener only */
     }
-  })
 }
 
 /**
@@ -28,13 +39,23 @@ export function saveSlideshowData(mappings) {
  * @param {string} screenId
  */
 export function getSlideshowData(screenId) {
-  // Try own window first (in case of same-window fallback)
-  if (window[STORAGE_KEY]?.[screenId]) {
-    return window[STORAGE_KEY][screenId]
-  }
-  // Try parent window (opened via window.open)
-  if (window.opener?.[STORAGE_KEY]?.[screenId]) {
-    return window.opener[STORAGE_KEY][screenId]
-  }
-  return null
+    // 1. Own window (same-context fallback or dashboard preview)
+    if (window[STORAGE_KEY]?.[screenId]) {
+        return window[STORAGE_KEY][screenId]
+    }
+    // 2. Parent window via window.opener (browser environment)
+    if (window.opener?.[STORAGE_KEY]?.[screenId]) {
+        return window.opener[STORAGE_KEY][screenId]
+    }
+    // 3. localStorage (Electron: window.opener is null between BrowserWindows)
+    try {
+        const stored = localStorage.getItem(LS_KEY)
+        if (stored) {
+            const data = JSON.parse(stored)
+            if (data?.[screenId]) return data[screenId]
+        }
+    } catch {
+        /* ignore parse errors */
+    }
+    return null
 }

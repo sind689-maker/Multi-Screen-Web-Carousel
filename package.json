@@ -25,19 +25,17 @@
         "electron:build:win": "npm run build && electron-builder --win",
         "electron:build:mac": "npm run build && electron-builder --mac"
     },
-    "dependencies": {
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
         "react": "^19.2.5",
         "react-dom": "^19.2.5",
         "react-router-dom": "^7.14.2",
-        "swiper": "^12.1.4"
-    },
-    "devDependencies": {
-        "@eslint/js": "^10.0.1",
+        "swiper": "^12.1.4",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.1",
         "concurrently": "^9.2.1",
-        "electron": "^42.0.0",
+        "electron": "30",
         "electron-builder": "^26.8.1",
         "eslint": "^10.2.1",
         "eslint-plugin-react-hooks": "^7.1.1",
@@ -49,7 +47,7 @@
     "build": {
         "appId": "com.makesomething.multi-screen-carousel",
         "productName": "Multi Screen Carousel",
-        "electronDist": "node_modules/electron/dist",
+        "icon": "build/icon",
         "asar": true,
         "directories": {
             "output": "release"

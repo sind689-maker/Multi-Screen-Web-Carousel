@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useFolderPicker } from '../hooks/useFolderPicker'
 import { useScreenDetection } from '../hooks/useScreenDetection'
 import FolderSelector from '../components/FolderSelector'
@@ -6,6 +6,7 @@ import ScreenDetector from '../components/ScreenDetector'
 import ScreenMappingCard from '../components/ScreenMappingCard'
 import SlideshowCarousel from '../components/SlideshowCarousel'
 import { saveSlideshowData } from '../utils/storageUtils'
+import { loadConfig, saveConfig } from '../utils/configUtils'
 import styles from './Dashboard.module.css'
 
 const DEFAULT_DURATION = 5
@@ -14,7 +15,7 @@ const DEFAULT_TRANSITION = 'fade'
 export default function Dashboard() {
   const {
     folders, loading: fLoading, error: fError, isSupported: fsSupported,
-    pickFolder, removeFolder,
+    pickFolder, removeFolder, restoreFolders,
   } = useFolderPicker()
 
   const {
@@ -26,6 +27,50 @@ export default function Dashboard() {
   const [mappings, setMappings] = useState({})
   const [launchErrors, setLaunchErrors] = useState([])
   const [previewScreen, setPreviewScreen] = useState(null)
+
+  // ── Config persistence ──────────────────────────────────────────────────
+  // configLoaded: false until the initial load from config.jsonc is done.
+  const [configLoaded, setConfigLoaded] = useState(false)
+  const saveTimerRef = useRef(null)
+
+  // Load config once on mount (Electron only)
+  useEffect(() => {
+    async function initConfig() {
+      if (!window.electronAPI) { setConfigLoaded(true); return }
+      const cfg = await loadConfig()
+      if (cfg) {
+        if (Array.isArray(cfg.folders) && cfg.folders.length > 0) {
+          const restored = await Promise.all(
+            cfg.folders.map(async (saved) => {
+              if (!saved.path) return null
+              const images = await window.electronAPI.folder.readImages(saved.path)
+              if (!images.length) return null
+              return { id: saved.id, name: saved.name, path: saved.path, images, imageCount: images.length }
+            })
+          )
+          const valid = restored.filter(Boolean)
+          if (valid.length) restoreFolders(valid)
+        }
+        if (cfg.mappings && typeof cfg.mappings === 'object') {
+          setMappings(cfg.mappings)
+        }
+      }
+      setConfigLoaded(true)
+    }
+    initConfig()
+  // restoreFolders is stable (useCallback with no deps)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Auto-save whenever folders or mappings change (debounced 800 ms)
+  useEffect(() => {
+    if (!configLoaded) return
+    clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      saveConfig(folders, mappings)
+    }, 800)
+    return () => clearTimeout(saveTimerRef.current)
+  }, [folders, mappings, configLoaded])
 
   const handleMappingChange = useCallback((screenId, newMapping) => {
     setMappings(prev => ({ ...prev, [screenId]: newMapping }))
